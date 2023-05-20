@@ -1,0 +1,15 @@
+C:\Users\Lenovo\craftinginterpreters\bin\Debug\net7.0\craftinginterpreters.exe
+C:\Users\Lenovo\craftinginterpreters\bin\Debug\net7.0\craftinginterpreters.deps.json
+C:\Users\Lenovo\craftinginterpreters\bin\Debug\net7.0\craftinginterpreters.runtimeconfig.json
+C:\Users\Lenovo\craftinginterpreters\bin\Debug\net7.0\craftinginterpreters.dll
+C:\Users\Lenovo\craftinginterpreters\bin\Debug\net7.0\craftinginterpreters.pdb
+C:\Users\Lenovo\craftinginterpreters\obj\Debug\net7.0\craftinginterpreters.csproj.AssemblyReference.cache
+C:\Users\Lenovo\craftinginterpreters\obj\Debug\net7.0\craftinginterpreters.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Lenovo\craftinginterpreters\obj\Debug\net7.0\craftinginterpreters.AssemblyInfoInputs.cache
+C:\Users\Lenovo\craftinginterpreters\obj\Debug\net7.0\craftinginterpreters.AssemblyInfo.cs
+C:\Users\Lenovo\craftinginterpreters\obj\Debug\net7.0\craftinginterpreters.csproj.CoreCompileInputs.cache
+C:\Users\Lenovo\craftinginterpreters\obj\Debug\net7.0\craftinginterpreters.dll
+C:\Users\Lenovo\craftinginterpreters\obj\Debug\net7.0\refint\craftinginterpreters.dll
+C:\Users\Lenovo\craftinginterpreters\obj\Debug\net7.0\craftinginterpreters.pdb
+C:\Users\Lenovo\craftinginterpreters\obj\Debug\net7.0\craftinginterpreters.genruntimeconfig.cache
+C:\Users\Lenovo\craftinginterpreters\obj\Debug\net7.0\ref\craftinginterpreters.dll
