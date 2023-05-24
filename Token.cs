@@ -1,20 +1,20 @@
 
-namespace LoxLanguage {
-  class Token {
-    TokenType type;
-    String lexeme;
-    Object? literal;
-    int line;
+namespace LoxLanguage;
 
-    public Token(TokenType type, String lexeme, Object? literal, int line) {
-      this.type = type;
-      this.lexeme = lexeme;
-      this.literal = literal;
-      this.line = line;
-    }
+public class Token {
+  public TokenType type;
+  public String lexeme;
+  public Object? literal;
+  public int line;
 
-    public override String ToString() {
-      return type + " " + lexeme + " " + literal;
-    }
+  public Token(TokenType type, String lexeme, Object? literal, int line) {
+    this.type = type;
+    this.lexeme = lexeme;
+    this.literal = literal;
+    this.line = line;
+  }
+
+  public override String ToString() {
+    return type + " " + lexeme + " " + literal;
   }
 }
