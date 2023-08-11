@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "L/YbuW07lYre9s5zvEa/tCZWhKsMVjDKNL8CMqslmU6LMzMx9LfEpvkj8mmUpNCHvPQTAivejUZiJphIPa+Zxg==",
+  "dgSpecHash": "HK/X+ox9gfx0mazD1atZx/LyRtKv1XliHJj/7YuGpuONahGRHDBFX7cp2gmZBemIJ2XNQrd3d+YsqkciWJdFoA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Lenovo\\craftinginterpreters\\craftinginterpreters.csproj",
+  "projectFilePath": "/home/rembr/crafting-interpreters-impl/craftinginterpreters.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

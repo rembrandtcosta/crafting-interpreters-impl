@@ -1,201 +1,238 @@
 using System.Collections;
+using static LoxLanguage.TokenType;
 
 namespace LoxLanguage;
 
-class Scanner {
-  private String source;
-  private ArrayList tokens = new ArrayList();
-  private int start = 0;
-  private int current = 0;
-  private int line = 1;
-  private Dictionary<String, TokenType> keywords;
+class Scanner
+{
+    private String source;
+    private ArrayList tokens = new ArrayList();
+    private int start = 0;
+    private int current = 0;
+    private int line = 1;
+    private Dictionary<String, TokenType> keywords;
 
-
-  public Scanner(String source) {
-    this.source = source;
-    keywords = new Dictionary<string, TokenType>();
-    keywords.Add("and", TokenType.AND);
-    keywords.Add("class", TokenType.CLASS);
-    keywords.Add("else", TokenType.ELSE);
-    keywords.Add("false", TokenType.FALSE);
-    keywords.Add("for", TokenType.FOR);
-    keywords.Add("fun", TokenType.FUN);
-    keywords.Add("if", TokenType.IF);
-    keywords.Add("nil", TokenType.NIL);
-    keywords.Add("or", TokenType.OR);
-    keywords.Add("print", TokenType.PRINT);
-    keywords.Add("return", TokenType.RETURN);
-    keywords.Add("super", TokenType.SUPER);
-    keywords.Add("this", TokenType.THIS);
-    keywords.Add("true", TokenType.TRUE);
-    keywords.Add("var", TokenType.VAR);
-    keywords.Add("while", TokenType.WHILE);
-  }
-
-  public ArrayList ScanTokens() {
-    while (!IsAtEnd()) {
-      start = current;
-      ScanToken();
+    public Scanner(String source)
+    {
+        this.source = source;
+        keywords = new Dictionary<string, TokenType>();
+        keywords.Add("and", AND);
+        keywords.Add("class", CLASS);
+        keywords.Add("else", ELSE);
+        keywords.Add("false", FALSE);
+        keywords.Add("for", FOR);
+        keywords.Add("fun", FUN);
+        keywords.Add("if", IF);
+        keywords.Add("nil", NIL);
+        keywords.Add("or", OR);
+        keywords.Add("print", PRINT);
+        keywords.Add("return", RETURN);
+        keywords.Add("super", SUPER);
+        keywords.Add("this", THIS);
+        keywords.Add("true", TRUE);
+        keywords.Add("var", VAR);
+        keywords.Add("while", WHILE);
     }
 
-    tokens.Add(new Token(TokenType.EOF, "", null, line));
-    return tokens;
-  }
-
-  private bool IsAtEnd() {
-    return current >= source.Length;
-  }
-
-  private void ScanToken() {
-    char c = Advance();
-    switch (c) {
-      case '(': 
-        AddToken(TokenType.LEFT_PAREN);
-        break;
-      case ')': 
-        AddToken(TokenType.RIGHT_PAREN); 
-        break;
-      case '{':
-        AddToken(TokenType.LEFT_BRACE);
-        break;
-      case '}':
-        AddToken(TokenType.RIGHT_BRACE);
-        break;
-      case ',':
-        AddToken(TokenType.COMMA);
-        break;
-      case '.':
-        AddToken(TokenType.DOT);
-        break;
-      case '-':
-        AddToken(TokenType.MINUS);
-        break;
-      case '+':
-        AddToken(TokenType.PLUS);
-        break;
-      case ';':
-        AddToken(TokenType.SEMICOLON);
-        break;
-      case '*':
-        AddToken(TokenType.STAR);
-        break;
-      case '!':
-        AddToken(Match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
-        break;
-      case '=':
-        AddToken(Match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
-        break;
-      case '<':
-        AddToken(Match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
-        break;
-      case '>':
-        AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
-        break;
-      case '/':
-        if (Match('/')) {
-          while (Peek() != '\n' && !IsAtEnd()) Advance();
-        } else {
-          AddToken(TokenType.SLASH);
+    public ArrayList ScanTokens()
+    {
+        while (!IsAtEnd())
+        {
+            start = current;
+            ScanToken();
         }
-        break;
-      case ' ':
-      case '\r':
-      case '\t':
-      case '\n':
-        line++;
-        break;
-      default:
-        if (IsDigit(c)) {
-          Number();
-        } else if (IsAlpha(c)) {
-          Identifier();
-        } else {
-          Program.Error(line, "Unexpected character.");
+
+        tokens.Add(new Token(EOF, "", null, line));
+        return tokens;
+    }
+
+    private bool IsAtEnd()
+    {
+        return current >= source.Length;
+    }
+
+    private void ScanToken()
+    {
+        char c = Advance();
+        switch (c)
+        {
+            case '(':
+                AddToken(LEFT_PAREN);
+                break;
+            case ')':
+                AddToken(RIGHT_PAREN);
+                break;
+            case '{':
+                AddToken(LEFT_BRACE);
+                break;
+            case '}':
+                AddToken(RIGHT_BRACE);
+                break;
+            case ',':
+                AddToken(COMMA);
+                break;
+            case '.':
+                AddToken(DOT);
+                break;
+            case '-':
+                AddToken(MINUS);
+                break;
+            case '+':
+                AddToken(PLUS);
+                break;
+            case ';':
+                AddToken(SEMICOLON);
+                break;
+            case '*':
+                AddToken(STAR);
+                break;
+            case '!':
+                AddToken(Match('=') ? BANG_EQUAL : BANG);
+                break;
+            case '=':
+                AddToken(Match('=') ? EQUAL_EQUAL : EQUAL);
+                break;
+            case '<':
+                AddToken(Match('=') ? LESS_EQUAL : LESS);
+                break;
+            case '>':
+                AddToken(Match('=') ? GREATER_EQUAL : GREATER);
+                break;
+            case '/':
+                if (Match('/'))
+                {
+                    while (Peek() != '\n' && !IsAtEnd())
+                        Advance();
+                }
+                else
+                {
+                    AddToken(SLASH);
+                }
+                break;
+            case ' ':
+            case '\r':
+            case '\t':
+            case '\n':
+                line++;
+                break;
+            default:
+                if (IsDigit(c))
+                {
+                    Number();
+                }
+                else if (IsAlpha(c))
+                {
+                    Identifier();
+                }
+                else
+                {
+                    Program.Error(line, "Unexpected character.");
+                }
+                break;
         }
-        break;
-    }
-  }
-
-  private void Identifier() {
-    while (IsAlphaNumeric(Peek())) Advance();
-    String text = source.Substring(start, current - start);
-    TokenType type = TokenType.IDENTIFIER;
-    keywords.TryGetValue(text, out type);
-    AddToken(type);
-  }
-
-  private void Number() {
-    while (IsDigit(Peek())) Advance();
-
-    if (Peek() == '.' && IsDigit(PeekNext())) {
-      Advance();
-
-      while (IsDigit(Peek())) Advance();
     }
 
-    AddToken(TokenType.NUMBER, Double.Parse(source.Substring(start, current - start)));
-  }
-
-  private void String() {
-    while (Peek() != '"' && !IsAtEnd()) {
-      if (Peek() == '\n') line++;
-      Advance();
+    private void Identifier()
+    {
+        while (IsAlphaNumeric(Peek()))
+            Advance();
+        String text = source.Substring(start, current - start);
+        TokenType type = IDENTIFIER;
+        keywords.TryGetValue(text, out type);
+        AddToken(type);
     }
 
-    if (IsAtEnd()) {
-      Program.Error(line, "Unterminated string.");
-      return;
+    private void Number()
+    {
+        while (IsDigit(Peek()))
+            Advance();
+
+        if (Peek() == '.' && IsDigit(PeekNext()))
+        {
+            Advance();
+
+            while (IsDigit(Peek()))
+                Advance();
+        }
+
+        AddToken(NUMBER, Double.Parse(source.Substring(start, current - start)));
     }
 
-    Advance();
+    private void String()
+    {
+        while (Peek() != '"' && !IsAtEnd())
+        {
+            if (Peek() == '\n')
+                line++;
+            Advance();
+        }
 
-    String value = source.Substring(start + 1, current - start + 1);
-    AddToken(LoxLanguage.TokenType.STRING, value);
-  }
+        if (IsAtEnd())
+        {
+            Program.Error(line, "Unterminated string.");
+            return;
+        }
 
-  private bool Match(char expected) {
-    if (IsAtEnd()) return false;
-    if (source[current] != expected) return false;
+        Advance();
 
-    current++;
-    return true;
-  }
+        String value = source.Substring(start + 1, current - start + 1);
+        AddToken(STRING, value);
+    }
 
-  private char Peek() {
-    if (IsAtEnd()) return '\0';
-    return source[current];
-  }
+    private bool Match(char expected)
+    {
+        if (IsAtEnd())
+            return false;
+        if (source[current] != expected)
+            return false;
 
-  private char PeekNext() {
-    if (current + 1 >= source.Length) return '\0';
+        current++;
+        return true;
+    }
 
-    return source[current + 1];
-  }
+    private char Peek()
+    {
+        if (IsAtEnd())
+            return '\0';
+        return source[current];
+    }
 
-  private bool IsAlpha(char c) {
-    return (c >= 'a' && c <= 'z') || (c >= 'A') && (c <= 'Z') ||
-      (c == '_');
-  }
+    private char PeekNext()
+    {
+        if (current + 1 >= source.Length)
+            return '\0';
 
-  private bool IsAlphaNumeric(char c) {
-    return IsAlpha(c) || IsDigit(c);
-  }
+        return source[current + 1];
+    }
 
-  private bool IsDigit(char c) {
-    return c >= '0' && c <= '9';
-  }
+    private bool IsAlpha(char c)
+    {
+        return (c >= 'a' && c <= 'z') || (c >= 'A') && (c <= 'Z') || (c == '_');
+    }
 
-  private char Advance() {
-    return source[current++];
-  }
+    private bool IsAlphaNumeric(char c)
+    {
+        return IsAlpha(c) || IsDigit(c);
+    }
 
-  private void AddToken(TokenType type) {
-    AddToken(type, null);
-  }
+    private bool IsDigit(char c)
+    {
+        return c >= '0' && c <= '9';
+    }
 
-  private void AddToken(TokenType type, Object? literal) {
-    String text = source.Substring(start, current - start);
-    tokens.Add(new Token(type, text, literal, line));
-  }
+    private char Advance()
+    {
+        return source[current++];
+    }
 
+    private void AddToken(TokenType type)
+    {
+        AddToken(type, null);
+    }
+
+    private void AddToken(TokenType type, Object? literal)
+    {
+        String text = source.Substring(start, current - start);
+        tokens.Add(new Token(type, text, literal, line));
+    }
 }
