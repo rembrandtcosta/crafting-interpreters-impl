@@ -5,11 +5,13 @@ using static LoxLanguage.TokenType;
 
 namespace LoxLanguage;
 
-class Program
+static class Program
 {
+    private static readonly Interpreter interpreter = new Interpreter();
     static bool hadError = false;
+    static bool hadRuntimeError = false;
 
-    static void Main(string[] args)
+    public static void Main(string[] args)
     {
         if (args.Length > 1)
         {
@@ -42,6 +44,10 @@ class Program
         {
             Environment.Exit(65);
         }
+        if (hadRuntimeError)
+        {
+            Environment.Exit(70);
+        }
     }
 
     private static void RunPrompt()
@@ -71,10 +77,12 @@ class Program
         Scanner scanner = new Scanner(source);
         ArrayList tokens = scanner.ScanTokens();
         Parser parser = new Parser(tokens.Cast<Token>().ToList());
-        Expr expression = parser.Parse();
+        Expr? expression = parser.Parse();
 
         if (hadError)
             return;
+
+        interpreter.Interpret(expression);
 
         Console.WriteLine(new AstPrinter().Print(expression));
     }
@@ -94,6 +102,13 @@ class Program
         {
             Report(token.line, " at '" + token.lexeme + "'", message);
         }
+    }
+
+    public static void RuntimeError(RuntimeError error)
+    {
+        Console.WriteLine(error.GetBaseException().Message +
+                "\n[line " + error.token.line + "]");
+        hadRuntimeError = true;
     }
 
     private static void Report(int line, String where, String message)

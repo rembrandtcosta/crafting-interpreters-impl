@@ -109,6 +109,9 @@ class Scanner
                     AddToken(SLASH);
                 }
                 break;
+            case '"': 
+                String();
+                break;
             case ' ':
             case '\r':
             case '\t':
@@ -175,7 +178,7 @@ class Scanner
 
         Advance();
 
-        String value = source.Substring(start + 1, current - start + 1);
+        String value = source.Substring(start + 1, current - start - 2);
         AddToken(STRING, value);
     }
 

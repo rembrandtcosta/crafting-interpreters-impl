@@ -15,9 +15,10 @@ public class AstPrinter : Expr.Visitor<String>
         Console.WriteLine(new AstPrinter().Print(expression));
     }
 
-    public String Print(Expr expr)
+    public String Print(Expr? expr)
     {
-        return expr.Accept(this);
+        String? s = expr?.Accept(this);
+        return s ?? "";
     }
 
     public String VisitBinaryExpr(Expr.Binary expr)
@@ -39,7 +40,7 @@ public class AstPrinter : Expr.Visitor<String>
     {
         if (expr.value == null)
             return "nil";
-        return expr.value.ToString();
+        return expr.value.ToString() ?? "";
     }
 
     private String Parenthesize(String name, params Expr[] exprs)

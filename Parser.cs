@@ -20,7 +20,7 @@ class Parser
         {
             return Expression();
         }
-        catch (ParseError error)
+        catch (ParseError)
         {
             return null;
         }
