@@ -1,4 +1,4 @@
-using static LoxLanguage.TokenType;
+/*using static LoxLanguage.TokenType;
 
 namespace LoxLanguage;
 
@@ -58,4 +58,4 @@ public class AstPrinter : Expr.Visitor<String>
 
         return builder.ToString();
     }
-}
+}*/

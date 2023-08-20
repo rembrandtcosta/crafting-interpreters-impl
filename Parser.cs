@@ -1,3 +1,4 @@
+using System.Collections;
 using static LoxLanguage.TokenType;
 
 namespace LoxLanguage;
@@ -14,28 +15,237 @@ class Parser
         this.tokens = tokens;
     }
 
-    public Expr? Parse()
+    public ArrayList Parse()
     {
-        try
+        ArrayList statements = new ArrayList();
+        while (!IsAtEnd())
         {
-            return Expression();
+            statements.Add(Declaration());
         }
-        catch (ParseError)
-        {
-            return null;
-        }
+
+        return statements;
     }
 
     private Expr Expression()
     {
-        return Equality();
+        return Assignment();
+    }
+
+    private Stmt Declaration()
+    {
+        try
+        {
+            if (Match(VAR))
+                return VarDeclaration();
+
+            return Statement();
+        }
+        catch
+        {
+            Synchronize();
+            return null;
+        }
+    }
+
+    private Stmt Statement()
+    {
+        if (Match(FOR))
+            return ForStatement();
+        if (Match(IF))
+            return IfStatement();
+        if (Match(PRINT))
+            return PrintStatement();
+        if (Match(WHILE))
+            return WhileStatement();
+        if (Match(LEFT_BRACE))
+            return new Stmt.Block(Block());
+
+        return ExpressionStatement();
+    }
+
+    private Stmt ForStatement()
+    {
+        Consume(LEFT_PAREN, "Expect '(' after 'for'.");
+
+        Stmt? initializer = null;
+        if (Match(SEMICOLON))
+        {
+            initializer = null;
+        }
+        else if (Match(VAR))
+        {
+            initializer = VarDeclaration();
+        }
+        else 
+        {
+            initializer = ExpressionStatement();
+        }
+
+        Expr? condition = null;
+        if (!Check(SEMICOLON))
+        {
+            condition = Expression();
+        }
+        Consume(SEMICOLON, "Expect ';' after loop condition.");
+
+        Expr? increment = null;
+        if (!Check(RIGHT_PAREN))
+        {
+            increment = Expression();
+        }
+        Consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        Stmt body = Statement();
+
+        if (increment != null)
+        {
+            ArrayList a = new ArrayList 
+            {
+                body,
+                new Stmt.Expression(increment),
+            };
+            body = new Stmt.Block(a);
+        }
+
+        if (condition == null)
+        {
+            condition = new Expr.Literal(true);
+        }
+        body = new Stmt.While(condition, body);
+
+        if (initializer != null)
+        {
+            body = new Stmt.Block(new ArrayList
+                    {
+                    initializer,
+                    body
+                    });
+        }
+
+        return body;
+    }
+
+    private Stmt IfStatement()
+    {
+        Consume(LEFT_PAREN, "Expect '(' after 'if'.");
+        Expr condition = Expression();
+        Consume(RIGHT_PAREN, "Expect ')' after if condition.");
+
+        Stmt thenBranch = Statement();
+        Stmt? elseBranch = null;
+        if (Match(ELSE))
+        {
+            elseBranch = Statement();
+        }
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
+    }
+
+    private Stmt PrintStatement()
+    {
+        Expr value = Expression();
+        Consume(SEMICOLON, "Expect ';' after value.");
+        return new Stmt.Print(value);
+    }
+
+    private Stmt VarDeclaration()
+    {
+        Token name = Consume(IDENTIFIER, "Expect variable name.");
+
+        Expr? initializer = null;
+        if (Match(EQUAL))
+        {
+            initializer = Expression();
+        }
+
+        Consume(SEMICOLON, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
+    }
+
+    private Stmt WhileStatement()
+    {
+        Consume(LEFT_PAREN, "Expect '(' after 'while'.");
+        Expr condition = Expression();
+        Consume(RIGHT_PAREN, "Expect ')' after condition.");
+        Stmt body = Statement();
+
+        return new Stmt.While(condition, body);
+    }
+
+    private Stmt ExpressionStatement()
+    {
+        Expr expr = Expression();
+        Consume(SEMICOLON, "Expect ';' after expression.");
+        return new Stmt.Expression(expr);
+    }
+
+    private ArrayList Block()
+    {
+        ArrayList statements = new ArrayList();
+
+        while (!Check(RIGHT_BRACE) && !IsAtEnd())
+        {
+            statements.Add(Declaration());
+        }
+
+        Consume(RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
+    }
+
+    private Expr Assignment()
+    {
+        Expr expr = Or();
+
+        if (Match(EQUAL))
+        {
+            Token equals = Previous();
+            Expr value = Assignment();
+
+            if (expr is Expr.Variable)
+            {
+                Token name = ((Expr.Variable)expr).name;
+                return new Expr.Assign(name, value);
+            }
+
+            Error(equals, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
+
+    private Expr Or()
+    {
+        Expr expr = And();
+
+        while (Match(OR))
+        {
+            Token op = Previous();
+            Expr right = And();
+            expr = new Expr.Logical(expr, op, right);
+        }
+
+        return expr;
+    }
+
+    private Expr And()
+    {
+        Expr expr = Equality();
+
+        while (Match(AND))
+        {
+            Token op = Previous();
+            Expr right = Equality();
+            expr = new Expr.Logical(expr, op, right);
+        }
+
+        return expr;
     }
 
     private Expr Equality()
     {
         Expr expr = Comparasion();
 
-        while (Match(BANG_EQUAL, BANG_EQUAL))
+        while (Match(BANG_EQUAL, EQUAL_EQUAL))
         {
             Token op = Previous();
             Expr right = Comparasion();
@@ -111,6 +321,11 @@ class Parser
         if (Match(NUMBER, STRING))
         {
             return new Expr.Literal(Previous().literal);
+        }
+
+        if (Match(IDENTIFIER))
+        {
+            return new Expr.Variable(Previous());
         }
 
         if (Match(LEFT_PAREN))

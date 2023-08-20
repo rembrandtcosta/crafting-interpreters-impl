@@ -16,19 +16,11 @@ static class Program
         if (args.Length > 1)
         {
             Console.WriteLine("Usage: jlox [script]");
-            Environment.Exit(64);
+            System.Environment.Exit(64);
         }
         else if (args.Length == 1)
         {
-            if (args[0].Equals("printer"))
-            {
-                AstPrinter printer = new AstPrinter();
-                printer.Test();
-            }
-            else
-            {
-                RunFile(args[0]);
-            }
+            RunFile(args[0]);
         }
         else
         {
@@ -42,11 +34,11 @@ static class Program
         Run(System.Text.Encoding.Default.GetString(bytes));
         if (hadError)
         {
-            Environment.Exit(65);
+            System.Environment.Exit(65);
         }
         if (hadRuntimeError)
         {
-            Environment.Exit(70);
+            System.Environment.Exit(70);
         }
     }
 
@@ -77,14 +69,12 @@ static class Program
         Scanner scanner = new Scanner(source);
         ArrayList tokens = scanner.ScanTokens();
         Parser parser = new Parser(tokens.Cast<Token>().ToList());
-        Expr? expression = parser.Parse();
+        ArrayList statements = parser.Parse();
 
         if (hadError)
             return;
 
-        interpreter.Interpret(expression);
-
-        Console.WriteLine(new AstPrinter().Print(expression));
+        interpreter.Interpret(statements);
     }
 
     public static void Error(int line, String message)
@@ -106,8 +96,7 @@ static class Program
 
     public static void RuntimeError(RuntimeError error)
     {
-        Console.WriteLine(error.GetBaseException().Message +
-                "\n[line " + error.token.line + "]");
+        Console.WriteLine(error.GetBaseException().Message + "\n[line " + error.token.line + "]");
         hadRuntimeError = true;
     }
 

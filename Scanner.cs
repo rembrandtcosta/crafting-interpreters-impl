@@ -109,7 +109,7 @@ class Scanner
                     AddToken(SLASH);
                 }
                 break;
-            case '"': 
+            case '"':
                 String();
                 break;
             case ' ':
@@ -141,8 +141,14 @@ class Scanner
             Advance();
         String text = source.Substring(start, current - start);
         TokenType type = IDENTIFIER;
-        keywords.TryGetValue(text, out type);
-        AddToken(type);
+        if (keywords.TryGetValue(text, out type))
+        {
+            AddToken(type);
+        }
+        else
+        {
+            AddToken(IDENTIFIER);
+        }
     }
 
     private void Number()

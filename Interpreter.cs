@@ -1,14 +1,20 @@
 namespace LoxLanguage;
+
+using System.Collections;
 using static TokenType;
 
-class Interpreter : Expr.Visitor<Object>
+class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object?>
 {
-    public void Interpret(Expr expression)
+    private Environment environment = new Environment();
+
+    public void Interpret(ArrayList statements)
     {
         try
         {
-            Object value = Evaluate(expression);
-            Console.WriteLine(Stringify(value));
+            foreach (Stmt statement in statements)
+            {
+                Execute(statement);
+            }
         }
         catch (RuntimeError error)
         {
@@ -20,7 +26,25 @@ class Interpreter : Expr.Visitor<Object>
     {
         return expr.value;
     }
-    
+
+    public Object VisitLogicalExpr(Expr.Logical expr)
+    {
+        Object left = Evaluate(expr.left);
+
+        if (expr.op.type == TokenType.OR)
+        {
+            if (IsTruthy(left))
+                return left;
+        }
+        else
+        {
+            if (!IsTruthy(left))
+                return left;
+        }
+
+        return Evaluate(expr.right);
+    }
+
     public Object VisitGroupingExpr(Expr.Grouping expr)
     {
         return Evaluate(expr.expression);
@@ -42,7 +66,12 @@ class Interpreter : Expr.Visitor<Object>
         return null;
     }
 
-    private void CheckNumberOperand(Token op, Object operand) 
+    public Object VisitVariableExpr(Expr.Variable expr)
+    {
+        return environment.Get(expr.name);
+    }
+
+    private void CheckNumberOperand(Token op, Object operand)
     {
         if (operand is Double)
             return;
@@ -50,7 +79,7 @@ class Interpreter : Expr.Visitor<Object>
         throw new RuntimeError(op, "Operand must be a number.");
     }
 
-    private void CheckNumberOperands(Token op, Object left, Object right) 
+    private void CheckNumberOperands(Token op, Object left, Object right)
     {
         if (right is Double && right is Double)
             return;
@@ -60,8 +89,10 @@ class Interpreter : Expr.Visitor<Object>
 
     private bool IsTruthy(Object obj)
     {
-        if (obj == null) return false;
-        if (obj is bool) return (bool)obj; 
+        if (obj == null)
+            return false;
+        if (obj is bool)
+            return (bool)obj;
 
         return true;
     }
@@ -90,13 +121,99 @@ class Interpreter : Expr.Visitor<Object>
             }
             return text;
         }
-        
+
         return obj.ToString() ?? "";
     }
 
     private Object Evaluate(Expr expr)
     {
         return expr.Accept(this);
+    }
+
+    private void Execute(Stmt stmt)
+    {
+        stmt.Accept(this);
+    }
+
+    public void ExecuteBlock(ArrayList statements, Environment environment)
+    {
+        Environment previous = this.environment;
+
+        try
+        {
+            this.environment = environment;
+
+            foreach (Stmt statement in statements)
+            {
+                Execute(statement);
+            }
+        }
+        finally
+        {
+            this.environment = previous;
+        }
+    }
+
+    public Object? VisitBlockStmt(Stmt.Block stmt)
+    {
+        ExecuteBlock(stmt.statements, new Environment(environment));
+        return null;
+    }
+
+    public Object? VisitExpressionStmt(Stmt.Expression stmt)
+    {
+        Evaluate(stmt.expression);
+        return null;
+    }
+
+    public Object? VisitIfStmt(Stmt.If stmt)
+    {
+        if (IsTruthy(Evaluate(stmt.condition)))
+        {
+            Execute(stmt.thenBranch);
+        }
+        else if (stmt.elseBranch != null)
+        {
+            Execute(stmt.elseBranch);
+        }
+
+        return null;
+    }
+
+    public Object? VisitPrintStmt(Stmt.Print stmt)
+    {
+        Object value = Evaluate(stmt.expression);
+        Console.WriteLine(Stringify(value));
+        return null;
+    }
+
+    public Object? VisitVarStmt(Stmt.Var stmt)
+    {
+        Object? value = null;
+        if (stmt.initializer != null)
+        {
+            value = Evaluate(stmt.initializer);
+        }
+
+        environment.Define(stmt.name.lexeme, value);
+        return null;
+    }
+
+    public Object? VisitWhileStmt(Stmt.While stmt)
+    {
+        while (IsTruthy(Evaluate(stmt.condition)))
+        {
+            Execute(stmt.body);
+        }
+
+        return null;
+    }
+
+    public Object? VisitAssignExpr(Expr.Assign expr)
+    {
+        Object? value = Evaluate(expr.value);
+        environment.Assign(expr.name, value);
+        return value;
     }
 
     public Object VisitBinaryExpr(Expr.Binary expr)
@@ -147,6 +264,4 @@ class Interpreter : Expr.Visitor<Object>
 
         return null;
     }
-
-
 }
