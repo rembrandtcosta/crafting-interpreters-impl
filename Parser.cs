@@ -9,10 +9,17 @@ class Parser
 
     private List<Token> tokens;
     private int current = 0;
+    private bool PromptMode = false;
 
     public Parser(List<Token> tokens)
     {
         this.tokens = tokens;
+    }
+
+    public Parser(List<Token> tokens, bool PromptMode)
+    {
+        this.tokens = tokens;
+        this.PromptMode = PromptMode;
     }
 
     public ArrayList Parse()
@@ -26,12 +33,12 @@ class Parser
         return statements;
     }
 
-    private Expr Expression()
+    private Expr? Expression()
     {
         return Assignment();
     }
 
-    private Stmt Declaration()
+    private Stmt? Declaration()
     {
         try
         {
@@ -128,7 +135,7 @@ class Parser
     private Stmt IfStatement()
     {
         Consume(LEFT_PAREN, "Expect '(' after 'if'.");
-        Expr condition = Expression();
+        Expr? condition = Expression();
         Consume(RIGHT_PAREN, "Expect ')' after if condition.");
 
         Stmt thenBranch = Statement();
@@ -143,14 +150,14 @@ class Parser
 
     private Stmt PrintStatement()
     {
-        Expr value = Expression();
+        Expr? value = Expression();
         Consume(SEMICOLON, "Expect ';' after value.");
         return new Stmt.Print(value);
     }
 
     private Stmt VarDeclaration()
     {
-        Token name = Consume(IDENTIFIER, "Expect variable name.");
+        Token? name = Consume(IDENTIFIER, "Expect variable name.");
 
         Expr? initializer = null;
         if (Match(EQUAL))
@@ -165,7 +172,7 @@ class Parser
     private Stmt WhileStatement()
     {
         Consume(LEFT_PAREN, "Expect '(' after 'while'.");
-        Expr condition = Expression();
+        Expr? condition = Expression();
         Consume(RIGHT_PAREN, "Expect ')' after condition.");
         Stmt body = Statement();
 
@@ -174,8 +181,18 @@ class Parser
 
     private Stmt ExpressionStatement()
     {
-        Expr expr = Expression();
-        Consume(SEMICOLON, "Expect ';' after expression.");
+        Expr? expr = Expression();
+        if (!PromptMode)
+            Consume(SEMICOLON, "Expect ';' after expression.");
+        else 
+        {
+            if (Check(SEMICOLON))
+            {
+                Advance();
+                return new Stmt.Expression(expr);
+            }
+            return new Stmt.Print(expr);
+        }
         return new Stmt.Expression(expr);
     }
 
@@ -192,14 +209,14 @@ class Parser
         return statements;
     }
 
-    private Expr Assignment()
+    private Expr? Assignment()
     {
-        Expr expr = Or();
+        Expr? expr = Or();
 
         if (Match(EQUAL))
         {
             Token equals = Previous();
-            Expr value = Assignment();
+            Expr? value = Assignment();
 
             if (expr is Expr.Variable)
             {
@@ -213,103 +230,103 @@ class Parser
         return expr;
     }
 
-    private Expr Or()
+    private Expr? Or()
     {
-        Expr expr = And();
+        Expr? expr = And();
 
         while (Match(OR))
         {
             Token op = Previous();
-            Expr right = And();
+            Expr? right = And();
             expr = new Expr.Logical(expr, op, right);
         }
 
         return expr;
     }
 
-    private Expr And()
+    private Expr? And()
     {
-        Expr expr = Equality();
+        Expr? expr = Equality();
 
         while (Match(AND))
         {
             Token op = Previous();
-            Expr right = Equality();
+            Expr? right = Equality();
             expr = new Expr.Logical(expr, op, right);
         }
 
         return expr;
     }
 
-    private Expr Equality()
+    private Expr? Equality()
     {
-        Expr expr = Comparasion();
+        Expr? expr = Comparasion();
 
         while (Match(BANG_EQUAL, EQUAL_EQUAL))
         {
             Token op = Previous();
-            Expr right = Comparasion();
+            Expr? right = Comparasion();
             expr = new Expr.Binary(expr, op, right);
         }
 
         return expr;
     }
 
-    private Expr Comparasion()
+    private Expr? Comparasion()
     {
-        Expr expr = Term();
+        Expr? expr = Term();
 
         while (Match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL))
         {
             Token op = Previous();
-            Expr right = Term();
+            Expr? right = Term();
             expr = new Expr.Binary(expr, op, right);
         }
 
         return expr;
     }
 
-    private Expr Term()
+    private Expr? Term()
     {
-        Expr expr = Factor();
+        Expr? expr = Factor();
 
         while (Match(MINUS, PLUS))
         {
             Token op = Previous();
-            Expr right = Factor();
+            Expr? right = Factor();
             expr = new Expr.Binary(expr, op, right);
         }
 
         return expr;
     }
 
-    private Expr Factor()
+    private Expr? Factor()
     {
-        Expr expr = Unary();
+        Expr? expr = Unary();
 
         while (Match(SLASH, STAR))
         {
             Token op = Previous();
-            Expr right = Unary();
+            Expr? right = Unary();
             expr = new Expr.Binary(expr, op, right);
         }
 
         return expr;
     }
 
-    private Expr Unary()
+    private Expr? Unary()
     {
         if (Match(BANG, MINUS))
         {
             Token op = Previous();
-            Expr right = Unary();
+            Expr? right = Unary();
             return new Expr.Unary(op, right);
         }
 
         return Primary();
     }
 
-    private Expr Primary()
+    private Expr? Primary()
     {
         if (Match(FALSE))
             return new Expr.Literal(false);
@@ -330,7 +347,7 @@ class Parser
 
         if (Match(LEFT_PAREN))
         {
-            Expr expr = Expression();
+            Expr? expr = Expression();
             Consume(RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
         }
@@ -352,7 +369,7 @@ class Parser
         return false;
     }
 
-    private Token Consume(TokenType type, String message)
+    private Token? Consume(TokenType type, String message)
     {
         if (Check(type))
             return Advance();
@@ -367,7 +384,7 @@ class Parser
         return Peek().type == type;
     }
 
-    private Token Advance()
+    private Token? Advance()
     {
         if (!IsAtEnd())
             current++;
@@ -401,7 +418,7 @@ class Parser
 
         while (!IsAtEnd())
         {
-            if (Previous().type == SEMICOLON)
+            if (Previous()?.type == SEMICOLON)
                 return;
 
             switch (Peek().type)

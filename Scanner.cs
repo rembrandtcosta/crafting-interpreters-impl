@@ -17,6 +17,7 @@ class Scanner
         this.source = source;
         keywords = new Dictionary<string, TokenType>();
         keywords.Add("and", AND);
+        keywords.Add("break", BREAK);
         keywords.Add("class", CLASS);
         keywords.Add("else", ELSE);
         keywords.Add("false", FALSE);

@@ -31,7 +31,7 @@ namespace LoxLanguage
 
         public class Expression : Stmt
         {
-            public Expression(Expr expression)
+            public Expression(Expr? expression)
             {
                 this.expression = expression;
             }
@@ -41,12 +41,12 @@ namespace LoxLanguage
                 return visitor.VisitExpressionStmt(this);
             }
 
-            public Expr expression;
+            public Expr? expression;
         }
 
         public class If : Stmt
         {
-            public If(Expr condition, Stmt thenBranch, Stmt elseBranch)
+            public If(Expr? condition, Stmt? thenBranch, Stmt? elseBranch)
             {
                 this.condition = condition;
                 this.thenBranch = thenBranch;
@@ -58,14 +58,14 @@ namespace LoxLanguage
                 return visitor.VisitIfStmt(this);
             }
 
-            public Expr condition;
-            public Stmt thenBranch;
-            public Stmt elseBranch;
+            public Expr? condition;
+            public Stmt? thenBranch;
+            public Stmt? elseBranch;
         }
 
         public class Print : Stmt
         {
-            public Print(Expr expression)
+            public Print(Expr? expression)
             {
                 this.expression = expression;
             }
@@ -75,12 +75,12 @@ namespace LoxLanguage
                 return visitor.VisitPrintStmt(this);
             }
 
-            public Expr expression;
+            public Expr? expression;
         }
 
         public class Var : Stmt
         {
-            public Var(Token name, Expr initializer)
+            public Var(Token? name, Expr? initializer)
             {
                 this.name = name;
                 this.initializer = initializer;
@@ -91,13 +91,13 @@ namespace LoxLanguage
                 return visitor.VisitVarStmt(this);
             }
 
-            public Token name;
-            public Expr initializer;
+            public Token? name;
+            public Expr? initializer;
         }
 
         public class While : Stmt
         {
-            public While(Expr condition, Stmt body)
+            public While(Expr? condition, Stmt body)
             {
                 this.condition = condition;
                 this.body = body;
@@ -108,7 +108,7 @@ namespace LoxLanguage
                 return visitor.VisitWhileStmt(this);
             }
 
-            public Expr condition;
+            public Expr? condition;
             public Stmt body;
         }
 

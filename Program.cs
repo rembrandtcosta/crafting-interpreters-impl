@@ -31,7 +31,7 @@ static class Program
     private static void RunFile(String path)
     {
         byte[] bytes = File.ReadAllBytes(Path.GetFullPath(path));
-        Run(System.Text.Encoding.Default.GetString(bytes));
+        Run(System.Text.Encoding.Default.GetString(bytes), false);
         if (hadError)
         {
             System.Environment.Exit(65);
@@ -53,7 +53,7 @@ static class Program
                 hadError = false;
                 break;
             }
-            Run(line);
+            Run(line, true);
             hadError = false;
         } while (!ShouldEscape());
     }
@@ -64,11 +64,11 @@ static class Program
         return key.Key == ConsoleKey.C && key.Modifiers == ConsoleModifiers.Control;
     }
 
-    private static void Run(String source)
+    private static void Run(String source, bool promptMode)
     {
         Scanner scanner = new Scanner(source);
         ArrayList tokens = scanner.ScanTokens();
-        Parser parser = new Parser(tokens.Cast<Token>().ToList());
+        Parser parser = new Parser(tokens.Cast<Token>().ToList(), promptMode);
         ArrayList statements = parser.Parse();
 
         if (hadError)
@@ -96,7 +96,7 @@ static class Program
 
     public static void RuntimeError(RuntimeError error)
     {
-        Console.WriteLine(error.GetBaseException().Message + "\n[line " + error.token.line + "]");
+        Console.WriteLine(error.GetBaseException().Message + "\n[line " + error?.token?.line + "]");
         hadRuntimeError = true;
     }
 

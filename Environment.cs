@@ -15,8 +15,13 @@ class Environment
         this.enclosing = enclosing;
     }
 
-    public Object Get(Token name)
+    public Object Get(Token? name)
     {
+        if (name == null)
+        {
+            throw new RuntimeError(null, "Undefined variable '" + name?.lexeme + "'.");
+        }
+
         if (values.TryGetValue(name.lexeme, out Object? obj))
         {
             return obj;

@@ -3,7 +3,7 @@ namespace LoxLanguage;
 using System.Collections;
 using static TokenType;
 
-class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object?>
+class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
 {
     private Environment environment = new Environment();
 
@@ -22,16 +22,16 @@ class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object?>
         }
     }
 
-    public Object VisitLiteralExpr(Expr.Literal expr)
+    public Object? VisitLiteralExpr(Expr.Literal expr)
     {
         return expr.value;
     }
 
-    public Object VisitLogicalExpr(Expr.Logical expr)
+    public Object? VisitLogicalExpr(Expr.Logical expr)
     {
-        Object left = Evaluate(expr.left);
+        Object? left = Evaluate(expr.left);
 
-        if (expr.op.type == TokenType.OR)
+        if (expr?.op?.type == TokenType.OR)
         {
             if (IsTruthy(left))
                 return left;
@@ -42,19 +42,19 @@ class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object?>
                 return left;
         }
 
-        return Evaluate(expr.right);
+        return Evaluate(expr?.right);
     }
 
-    public Object VisitGroupingExpr(Expr.Grouping expr)
+    public Object? VisitGroupingExpr(Expr.Grouping expr)
     {
         return Evaluate(expr.expression);
     }
 
-    public Object VisitUnaryExpr(Expr.Unary expr)
+    public Object? VisitUnaryExpr(Expr.Unary expr)
     {
-        Object right = Evaluate(expr.right);
+        Object? right = Evaluate(expr.right);
 
-        switch (expr.op.type)
+        switch (expr?.op?.type)
         {
             case BANG:
                 return !IsTruthy(right);
@@ -66,12 +66,12 @@ class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object?>
         return null;
     }
 
-    public Object VisitVariableExpr(Expr.Variable expr)
+    public Object VisitVariableExpr(Expr.Variable? expr)
     {
-        return environment.Get(expr.name);
+        return environment.Get(expr?.name);
     }
 
-    private void CheckNumberOperand(Token op, Object operand)
+    private void CheckNumberOperand(Token op, Object? operand)
     {
         if (operand is Double)
             return;
@@ -79,7 +79,7 @@ class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object?>
         throw new RuntimeError(op, "Operand must be a number.");
     }
 
-    private void CheckNumberOperands(Token op, Object left, Object right)
+    private void CheckNumberOperands(Token op, Object? left, Object? right)
     {
         if (right is Double && right is Double)
             return;
@@ -87,7 +87,7 @@ class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object?>
         throw new RuntimeError(op, "Operands must be numbers.");
     }
 
-    private bool IsTruthy(Object obj)
+    private bool IsTruthy(Object? obj)
     {
         if (obj == null)
             return false;
@@ -97,7 +97,7 @@ class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object?>
         return true;
     }
 
-    private bool IsEqual(Object a, Object b)
+    private bool IsEqual(Object? a, Object? b)
     {
         if (a == null && b == null)
             return true;
@@ -107,7 +107,7 @@ class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object?>
         return a.Equals(b);
     }
 
-    private String? Stringify(Object obj)
+    private String? Stringify(Object? obj)
     {
         if (obj == null)
             return "nil";
@@ -125,14 +125,14 @@ class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object?>
         return obj.ToString() ?? "";
     }
 
-    private Object Evaluate(Expr expr)
+    private Object? Evaluate(Expr? expr)
     {
-        return expr.Accept(this);
+        return expr?.Accept(this);
     }
 
-    private void Execute(Stmt stmt)
+    private void Execute(Stmt? stmt)
     {
-        stmt.Accept(this);
+        stmt?.Accept(this);
     }
 
     public void ExecuteBlock(ArrayList statements, Environment environment)
@@ -182,7 +182,7 @@ class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object?>
 
     public Object? VisitPrintStmt(Stmt.Print stmt)
     {
-        Object value = Evaluate(stmt.expression);
+        Object? value = Evaluate(stmt.expression);
         Console.WriteLine(Stringify(value));
         return null;
     }
@@ -216,12 +216,12 @@ class Interpreter : Expr.Visitor<Object>, Stmt.Visitor<Object?>
         return value;
     }
 
-    public Object VisitBinaryExpr(Expr.Binary expr)
+    public Object? VisitBinaryExpr(Expr.Binary expr)
     {
-        Object left = Evaluate(expr.left);
-        Object right = Evaluate(expr.right);
+        Object? left = Evaluate(expr.left);
+        Object? right = Evaluate(expr.right);
 
-        switch (expr.op.type)
+        switch (expr?.op?.type)
         {
             case GREATER:
                 CheckNumberOperands(expr.op, left, right);
