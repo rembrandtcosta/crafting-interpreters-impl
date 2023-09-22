@@ -8,17 +8,19 @@ namespace LoxLanguage
         {
             public R VisitBlockStmt(Block stmt);
             public R VisitExpressionStmt(Expression stmt);
+            public R VisitFunctionStmt(Function stmt);
             public R VisitIfStmt(If stmt);
             public R VisitPrintStmt(Print stmt);
+            public R VisitReturnStmt(Return stmt);
             public R VisitVarStmt(Var stmt);
             public R VisitWhileStmt(While stmt);
         }
 
         public class Block : Stmt
         {
-            public Block(ArrayList statements)
+            public Block(ArrayList Statements)
             {
-                this.statements = statements;
+                this.Statements = Statements;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -26,14 +28,14 @@ namespace LoxLanguage
                 return visitor.VisitBlockStmt(this);
             }
 
-            public ArrayList statements;
+            public ArrayList Statements;
         }
 
         public class Expression : Stmt
         {
-            public Expression(Expr? expression)
+            public Expression(Expr? Expr)
             {
-                this.expression = expression;
+                this.Expr = Expr;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -41,16 +43,35 @@ namespace LoxLanguage
                 return visitor.VisitExpressionStmt(this);
             }
 
-            public Expr? expression;
+            public Expr? Expr;
+        }
+
+        public class Function : Stmt
+        {
+            public Function(Token Name, ArrayList Parameters, ArrayList Body)
+            {
+                this.Name = Name;
+                this.Parameters = Parameters;
+                this.Body = Body;
+            }
+
+            public override R Accept<R>(Visitor<R> visitor)
+            {
+                return visitor.VisitFunctionStmt(this);
+            }
+
+            public Token Name;
+            public ArrayList Parameters;
+            public ArrayList Body;
         }
 
         public class If : Stmt
         {
-            public If(Expr? condition, Stmt? thenBranch, Stmt? elseBranch)
+            public If(Expr? Condition, Stmt? ThenBranch, Stmt? ElseBranch)
             {
-                this.condition = condition;
-                this.thenBranch = thenBranch;
-                this.elseBranch = elseBranch;
+                this.Condition = Condition;
+                this.ThenBranch = ThenBranch;
+                this.ElseBranch = ElseBranch;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -58,16 +79,16 @@ namespace LoxLanguage
                 return visitor.VisitIfStmt(this);
             }
 
-            public Expr? condition;
-            public Stmt? thenBranch;
-            public Stmt? elseBranch;
+            public Expr? Condition;
+            public Stmt? ThenBranch;
+            public Stmt? ElseBranch;
         }
 
         public class Print : Stmt
         {
-            public Print(Expr? expression)
+            public Print(Expr? Expr)
             {
-                this.expression = expression;
+                this.Expr= Expr;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -75,15 +96,32 @@ namespace LoxLanguage
                 return visitor.VisitPrintStmt(this);
             }
 
-            public Expr? expression;
+            public Expr? Expr;
+        }
+
+        public class Return : Stmt
+        {
+            public Return(Token Keyword, Expr? Value)
+            {
+                this.Keyword = Keyword;
+                this.Value = Value;
+            }
+
+            public override R Accept<R>(Visitor<R> visitor)
+            {
+                return visitor.VisitReturnStmt(this);
+            }
+
+            public Token Keyword;
+            public Expr? Value;
         }
 
         public class Var : Stmt
         {
-            public Var(Token? name, Expr? initializer)
+            public Var(Token? Name, Expr? Initializer)
             {
-                this.name = name;
-                this.initializer = initializer;
+                this.Name = Name;
+                this.Initializer = Initializer;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -91,16 +129,16 @@ namespace LoxLanguage
                 return visitor.VisitVarStmt(this);
             }
 
-            public Token? name;
-            public Expr? initializer;
+            public Token? Name;
+            public Expr? Initializer;
         }
 
         public class While : Stmt
         {
-            public While(Expr? condition, Stmt body)
+            public While(Expr? Condition, Stmt? Body)
             {
-                this.condition = condition;
-                this.body = body;
+                this.Condition = Condition;
+                this.Body = Body;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -108,8 +146,8 @@ namespace LoxLanguage
                 return visitor.VisitWhileStmt(this);
             }
 
-            public Expr? condition;
-            public Stmt body;
+            public Expr? Condition;
+            public Stmt? Body;
         }
 
         public abstract R Accept<R>(Visitor<R> visitor);

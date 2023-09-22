@@ -42,6 +42,10 @@ class Parser
     {
         try
         {
+            if (Match(FUN))
+            {
+                return Function("function");
+            }
             if (Match(VAR))
                 return VarDeclaration();
 
@@ -62,6 +66,8 @@ class Parser
             return IfStatement();
         if (Match(PRINT))
             return PrintStatement();
+        if (Match(RETURN))
+            return ReturnStatement();
         if (Match(WHILE))
             return WhileStatement();
         if (Match(LEFT_BRACE))
@@ -83,7 +89,7 @@ class Parser
         {
             initializer = VarDeclaration();
         }
-        else 
+        else
         {
             initializer = ExpressionStatement();
         }
@@ -106,11 +112,7 @@ class Parser
 
         if (increment != null)
         {
-            ArrayList a = new ArrayList 
-            {
-                body,
-                new Stmt.Expression(increment),
-            };
+            ArrayList a = new ArrayList { body, new Stmt.Expression(increment), };
             body = new Stmt.Block(a);
         }
 
@@ -122,11 +124,7 @@ class Parser
 
         if (initializer != null)
         {
-            body = new Stmt.Block(new ArrayList
-                    {
-                    initializer,
-                    body
-                    });
+            body = new Stmt.Block(new ArrayList { initializer, body });
         }
 
         return body;
@@ -153,6 +151,19 @@ class Parser
         Expr? value = Expression();
         Consume(SEMICOLON, "Expect ';' after value.");
         return new Stmt.Print(value);
+    }
+
+    private Stmt ReturnStatement()
+    {
+        Token keyword = Previous();
+        Expr? value = null;
+        if (!Check(SEMICOLON))
+        {
+            value = Expression();
+        }
+
+        Consume(SEMICOLON, "Expect ';' after return value.");
+        return new Stmt.Return(keyword, value);
     }
 
     private Stmt VarDeclaration()
@@ -184,7 +195,7 @@ class Parser
         Expr? expr = Expression();
         if (!PromptMode)
             Consume(SEMICOLON, "Expect ';' after expression.");
-        else 
+        else
         {
             if (Check(SEMICOLON))
             {
@@ -194,6 +205,30 @@ class Parser
             return new Stmt.Print(expr);
         }
         return new Stmt.Expression(expr);
+    }
+
+    private Stmt.Function Function(String kind)
+    {
+        Token name = Consume(IDENTIFIER, "Expect " + kind + " name.");
+        Consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+        ArrayList parameters = new ArrayList();
+        if (!Check(RIGHT_PAREN))
+        {
+            do
+            {
+                if (parameters.Count >= 255)
+                {
+                    Error(Peek(), "Can't have more than 255 parameters.");
+                }
+
+                parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
+            } while (Match(COMMA));
+        }
+        Consume(RIGHT_PAREN, "Expect ')' after parameters.");
+
+        Consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
+        ArrayList body = Block();
+        return new Stmt.Function(name, parameters, body);
     }
 
     private ArrayList Block()
@@ -220,7 +255,7 @@ class Parser
 
             if (expr is Expr.Variable)
             {
-                Token name = ((Expr.Variable)expr).name;
+                Token? name = ((Expr.Variable)expr).Name;
                 return new Expr.Assign(name, value);
             }
 
@@ -323,7 +358,46 @@ class Parser
             return new Expr.Unary(op, right);
         }
 
-        return Primary();
+        return Call();
+    }
+
+    private Expr FinishCall(Expr? callee)
+    {
+        ArrayList arguments = new ArrayList();
+        if (!Check(RIGHT_PAREN))
+        {
+            do
+            {
+                if (arguments.Count >= 255)
+                {
+                    Error(Peek(), "Can't have more than than 255 arguments.");
+                }
+                arguments.Add(Expression());
+            } while (Match(COMMA));
+        }
+
+        Token? paren = Consume(RIGHT_PAREN, "Expect ')' after arguments.");
+
+        return new Expr.Call(callee, paren, arguments);
+    }
+
+    private Expr? Call()
+    {
+        Expr? expr = Primary();
+
+        while (true)
+        {
+            if (Match(LEFT_PAREN))
+            {
+                expr = FinishCall(expr);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return expr;
     }
 
     private Expr? Primary()
@@ -337,7 +411,7 @@ class Parser
 
         if (Match(NUMBER, STRING))
         {
-            return new Expr.Literal(Previous().literal);
+            return new Expr.Literal(Previous().Literal);
         }
 
         if (Match(IDENTIFIER))
@@ -369,7 +443,7 @@ class Parser
         return false;
     }
 
-    private Token? Consume(TokenType type, String message)
+    private Token Consume(TokenType type, String message)
     {
         if (Check(type))
             return Advance();
@@ -381,10 +455,10 @@ class Parser
     {
         if (IsAtEnd())
             return false;
-        return Peek().type == type;
+        return Peek().Type == type;
     }
 
-    private Token? Advance()
+    private Token Advance()
     {
         if (!IsAtEnd())
             current++;
@@ -393,7 +467,7 @@ class Parser
 
     private bool IsAtEnd()
     {
-        return Peek().type == EOF;
+        return Peek().Type == EOF;
     }
 
     private Token Peek()
@@ -418,10 +492,10 @@ class Parser
 
         while (!IsAtEnd())
         {
-            if (Previous()?.type == SEMICOLON)
+            if (Previous()?.Type == SEMICOLON)
                 return;
 
-            switch (Peek().type)
+            switch (Peek().Type)
             {
                 case CLASS:
                 case FUN:

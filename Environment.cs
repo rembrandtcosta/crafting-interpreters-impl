@@ -3,7 +3,7 @@ namespace LoxLanguage;
 class Environment
 {
     readonly Environment? enclosing;
-    private readonly Dictionary<String, Object> values = new Dictionary<String, Object>();
+    private readonly Dictionary<String, Object?> values = new Dictionary<String, Object?>();
 
     public Environment()
     {
@@ -15,14 +15,14 @@ class Environment
         this.enclosing = enclosing;
     }
 
-    public Object Get(Token? name)
+    public Object? Get(Token? name)
     {
         if (name == null)
         {
-            throw new RuntimeError(null, "Undefined variable '" + name?.lexeme + "'.");
+            throw new RuntimeError(null, "Undefined variable '" + name?.Lexeme + "'.");
         }
 
-        if (values.TryGetValue(name.lexeme, out Object? obj))
+        if (values.TryGetValue(name.Lexeme, out Object? obj))
         {
             return obj;
         }
@@ -30,14 +30,14 @@ class Environment
         if (enclosing != null)
             return enclosing.Get(name);
 
-        throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+        throw new RuntimeError(name, "Undefined variable '" + name.Lexeme + "'.");
     }
 
-    public Object? Assign(Token name, Object value)
+    public Object? Assign(Token? name, Object? value)
     {
-        if (values.ContainsKey(name.lexeme))
+        if (name != null && values.ContainsKey(name.Lexeme))
         {
-            values[name.lexeme] = value;
+            values[name.Lexeme] = value;
             return null;
         }
 
@@ -47,10 +47,10 @@ class Environment
             return null;
         }
 
-        throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
+        throw new RuntimeError(name, "Undefined variable '" + name?.Lexeme + "'.");
     }
 
-    public void Define(String name, Object obj)
+    public void Define(String name, Object? obj)
     {
         values.Add(name, obj);
     }

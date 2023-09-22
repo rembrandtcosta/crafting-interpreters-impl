@@ -84,19 +84,19 @@ static class Program
 
     public static void Error(Token token, String message)
     {
-        if (token.type == EOF)
+        if (token.Type == EOF)
         {
-            Report(token.line, " at end", message);
+            Report(token.Line, " at end", message);
         }
         else
         {
-            Report(token.line, " at '" + token.lexeme + "'", message);
+            Report(token.Line, " at '" + token.Lexeme + "'", message);
         }
     }
 
     public static void RuntimeError(RuntimeError error)
     {
-        Console.WriteLine(error.GetBaseException().Message + "\n[line " + error?.token?.line + "]");
+        Console.WriteLine(error.GetBaseException().Message + "\n[line " + error?.Token?.Line + "]");
         hadRuntimeError = true;
     }
 

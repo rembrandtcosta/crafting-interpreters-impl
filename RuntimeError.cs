@@ -2,11 +2,11 @@ namespace LoxLanguage;
 
 class RuntimeError : System.Exception
 {
-    public readonly Token? token;
+    public readonly Token? Token;
 
-    public RuntimeError(Token? token, String message)
+    public RuntimeError(Token? Token, String message)
         : base(message)
     {
-        this.token = token;
+        this.Token = Token;
     }
 }

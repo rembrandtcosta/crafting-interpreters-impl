@@ -1,4 +1,6 @@
-﻿namespace LoxLanguage
+﻿using System.Collections;
+
+namespace LoxLanguage
 {
     public abstract class Expr
     {
@@ -6,19 +8,20 @@
         {
             public R VisitAssignExpr(Assign expr);
             public R VisitBinaryExpr(Binary expr);
+            public R VisitCallExpr(Call expr);
             public R VisitGroupingExpr(Grouping expr);
             public R VisitLiteralExpr(Literal expr);
             public R VisitLogicalExpr(Logical expr);
             public R VisitUnaryExpr(Unary expr);
-            public R VisitVariableExpr(Variable? expr);
+            public R VisitVariableExpr(Variable expr);
         }
 
         public class Assign : Expr
         {
-            public Assign(Token? name, Expr? value)
+            public Assign(Token? Name, Expr? Value)
             {
-                this.name = name;
-                this.value = value;
+                this.Name = Name;
+                this.Value = Value;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -26,17 +29,17 @@
                 return visitor.VisitAssignExpr(this);
             }
 
-            public Token? name;
-            public Expr? value;
+            public Token? Name;
+            public Expr? Value;
         }
 
         public class Binary : Expr
         {
-            public Binary(Expr? left, Token? op, Expr? right)
+            public Binary(Expr? Left, Token? Op, Expr? Right)
             {
-                this.left = left;
-                this.op = op;
-                this.right = right;
+                this.Left = Left;
+                this.Op = Op;
+                this.Right = Right;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -44,16 +47,35 @@
                 return visitor.VisitBinaryExpr(this);
             }
 
-            public Expr? left;
-            public Token? op;
-            public Expr? right;
+            public Expr? Left;
+            public Token? Op;
+            public Expr? Right;
+        }
+
+        public class Call : Expr
+        {
+            public Call(Expr Callee, Token Paren, ArrayList Arguments)
+            {
+                this.Callee = Callee;
+                this.Paren = Paren;
+                this.Arguments = Arguments;
+            }
+
+            public override R Accept<R>(Visitor<R> visitor)
+            {
+                return visitor.VisitCallExpr(this);
+            }
+
+            public Expr Callee;
+            public Token Paren;
+            public ArrayList Arguments;
         }
 
         public class Grouping : Expr
         {
-            public Grouping(Expr? expression)
+            public Grouping(Expr? Expression)
             {
-                this.expression = expression;
+                this.Expression = Expression;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -61,14 +83,14 @@
                 return visitor.VisitGroupingExpr(this);
             }
 
-            public Expr? expression;
+            public Expr? Expression;
         }
 
         public class Literal : Expr
         {
-            public Literal(Object? value)
+            public Literal(Object? Value)
             {
-                this.value = value;
+                this.Value = Value;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -76,16 +98,16 @@
                 return visitor.VisitLiteralExpr(this);
             }
 
-            public Object? value;
+            public Object? Value;
         }
 
         public class Logical : Expr
         {
-            public Logical(Expr? left, Token? op, Expr? right)
+            public Logical(Expr? Left, Token? Op, Expr? Right)
             {
-                this.left = left;
-                this.op = op;
-                this.right = right;
+                this.Left = Left;
+                this.Op = Op;
+                this.Right = Right;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -93,17 +115,17 @@
                 return visitor.VisitLogicalExpr(this);
             }
 
-            public Expr? left;
-            public Token? op;
-            public Expr? right;
+            public Expr? Left;
+            public Token? Op;
+            public Expr? Right;
         }
 
         public class Unary : Expr
         {
-            public Unary(Token? op, Expr? right)
+            public Unary(Token? Op, Expr? Right)
             {
-                this.op = op;
-                this.right = right;
+                this.Op = Op;
+                this.Right = Right;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -111,15 +133,15 @@
                 return visitor.VisitUnaryExpr(this);
             }
 
-            public Token? op;
-            public Expr? right;
+            public Token? Op;
+            public Expr? Right;
         }
 
         public class Variable : Expr
         {
-            public Variable(Token name)
+            public Variable(Token? Name)
             {
-                this.name = name;
+                this.Name = Name;
             }
 
             public override R Accept<R>(Visitor<R> visitor)
@@ -127,7 +149,7 @@
                 return visitor.VisitVariableExpr(this);
             }
 
-            public Token name;
+            public Token? Name;
         }
 
         public abstract R Accept<R>(Visitor<R> visitor);

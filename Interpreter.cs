@@ -5,7 +5,28 @@ using static TokenType;
 
 class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
 {
-    private Environment environment = new Environment();
+    public readonly Environment globals = new Environment();
+    private Environment environment;
+
+    class clockClass : LoxCallable
+    {
+        public int Arity()
+        {
+            return 0;
+        }
+
+        public Object Call(Interpreter interpreter, ArrayList arguments)
+        {
+            return (double)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000.0;
+        }
+    };
+
+    public Interpreter()
+    {
+        this.environment = globals;
+
+        globals.Define("clock", new clockClass());
+    }
 
     public void Interpret(ArrayList statements)
     {
@@ -24,14 +45,14 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
 
     public Object? VisitLiteralExpr(Expr.Literal expr)
     {
-        return expr.value;
+        return expr.Value;
     }
 
     public Object? VisitLogicalExpr(Expr.Logical expr)
     {
-        Object? left = Evaluate(expr.left);
+        Object? left = Evaluate(expr.Left);
 
-        if (expr?.op?.type == TokenType.OR)
+        if (expr?.Op?.Type == TokenType.OR)
         {
             if (IsTruthy(left))
                 return left;
@@ -42,33 +63,33 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
                 return left;
         }
 
-        return Evaluate(expr?.right);
+        return Evaluate(expr?.Right);
     }
 
     public Object? VisitGroupingExpr(Expr.Grouping expr)
     {
-        return Evaluate(expr.expression);
+        return Evaluate(expr.Expression);
     }
 
     public Object? VisitUnaryExpr(Expr.Unary expr)
     {
-        Object? right = Evaluate(expr.right);
+        Object? right = Evaluate(expr.Right);
 
-        switch (expr?.op?.type)
+        switch (expr?.Op?.Type)
         {
             case BANG:
                 return !IsTruthy(right);
             case MINUS:
-                CheckNumberOperand(expr.op, right);
+                CheckNumberOperand(expr.Op, right);
                 return -(double)right;
         }
 
         return null;
     }
 
-    public Object VisitVariableExpr(Expr.Variable? expr)
+    public Object? VisitVariableExpr(Expr.Variable? expr)
     {
-        return environment.Get(expr?.name);
+        return environment.Get(expr?.Name);
     }
 
     private void CheckNumberOperand(Token op, Object? operand)
@@ -156,25 +177,32 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
 
     public Object? VisitBlockStmt(Stmt.Block stmt)
     {
-        ExecuteBlock(stmt.statements, new Environment(environment));
+        ExecuteBlock(stmt.Statements, new Environment(environment));
         return null;
     }
 
     public Object? VisitExpressionStmt(Stmt.Expression stmt)
     {
-        Evaluate(stmt.expression);
+        Evaluate(stmt.Expr);
+        return null;
+    }
+
+    public Object? VisitFunctionStmt(Stmt.Function stmt)
+    {
+        LoxFunction function = new LoxFunction(stmt, environment);
+        environment.Define(stmt.Name.Lexeme, function);
         return null;
     }
 
     public Object? VisitIfStmt(Stmt.If stmt)
     {
-        if (IsTruthy(Evaluate(stmt.condition)))
+        if (IsTruthy(Evaluate(stmt.Condition)))
         {
-            Execute(stmt.thenBranch);
+            Execute(stmt.ThenBranch);
         }
-        else if (stmt.elseBranch != null)
+        else if (stmt.ElseBranch != null)
         {
-            Execute(stmt.elseBranch);
+            Execute(stmt.ElseBranch);
         }
 
         return null;
@@ -182,28 +210,38 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
 
     public Object? VisitPrintStmt(Stmt.Print stmt)
     {
-        Object? value = Evaluate(stmt.expression);
+        Object? value = Evaluate(stmt.Expr);
         Console.WriteLine(Stringify(value));
         return null;
+    }
+
+    public Object? VisitReturnStmt(Stmt.Return stmt)
+    {
+        Object? value = null;
+        if (stmt.Value != null)
+            value = Evaluate(stmt.Value);
+
+        throw new Return(value);
     }
 
     public Object? VisitVarStmt(Stmt.Var stmt)
     {
         Object? value = null;
-        if (stmt.initializer != null)
+        if (stmt.Initializer != null)
         {
-            value = Evaluate(stmt.initializer);
+            value = Evaluate(stmt.Initializer);
         }
 
-        environment.Define(stmt.name.lexeme, value);
+        if (stmt?.Name?.Lexeme != null)
+            environment.Define(stmt.Name.Lexeme, value);
         return null;
     }
 
     public Object? VisitWhileStmt(Stmt.While stmt)
     {
-        while (IsTruthy(Evaluate(stmt.condition)))
+        while (IsTruthy(Evaluate(stmt.Condition)))
         {
-            Execute(stmt.body);
+            Execute(stmt.Body);
         }
 
         return null;
@@ -211,36 +249,36 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
 
     public Object? VisitAssignExpr(Expr.Assign expr)
     {
-        Object? value = Evaluate(expr.value);
-        environment.Assign(expr.name, value);
+        Object? value = Evaluate(expr.Value);
+        environment.Assign(expr.Name, value);
         return value;
     }
 
     public Object? VisitBinaryExpr(Expr.Binary expr)
     {
-        Object? left = Evaluate(expr.left);
-        Object? right = Evaluate(expr.right);
+        Object? left = Evaluate(expr.Left);
+        Object? right = Evaluate(expr.Right);
 
-        switch (expr?.op?.type)
+        switch (expr?.Op?.Type)
         {
             case GREATER:
-                CheckNumberOperands(expr.op, left, right);
+                CheckNumberOperands(expr.Op, left, right);
                 return (double)left > (double)right;
             case GREATER_EQUAL:
-                CheckNumberOperands(expr.op, left, right);
+                CheckNumberOperands(expr.Op, left, right);
                 return (double)left >= (double)right;
             case LESS:
-                CheckNumberOperands(expr.op, left, right);
+                CheckNumberOperands(expr.Op, left, right);
                 return (double)left < (double)right;
             case LESS_EQUAL:
-                CheckNumberOperands(expr.op, left, right);
+                CheckNumberOperands(expr.Op, left, right);
                 return (double)left <= (double)right;
             case BANG_EQUAL:
                 return !IsEqual(left, right);
             case EQUAL_EQUAL:
                 return IsEqual(left, right);
             case MINUS:
-                CheckNumberOperands(expr.op, left, right);
+                CheckNumberOperands(expr.Op, left, right);
                 return (double)left - (double)right;
             case PLUS:
                 if (left is Double && right is Double)
@@ -253,15 +291,41 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
                     return (String)left + (String)right;
                 }
 
-                throw new RuntimeError(expr.op, "Operands must be two numbers or two strings.");
+                throw new RuntimeError(expr.Op, "Operands must be two numbers or two strings.");
             case SLASH:
-                CheckNumberOperands(expr.op, left, right);
+                CheckNumberOperands(expr.Op, left, right);
                 return (double)left / (double)right;
             case STAR:
-                CheckNumberOperands(expr.op, left, right);
+                CheckNumberOperands(expr.Op, left, right);
                 return (double)left * (double)right;
         }
 
         return null;
+    }
+
+    public Object? VisitCallExpr(Expr.Call expr)
+    {
+        Object? callee = Evaluate(expr.Callee);
+
+        ArrayList arguments = new ArrayList();
+        foreach (Expr argument in expr.Arguments)
+        {
+            arguments.Add(Evaluate(argument));
+        }
+
+        if (!(callee is LoxCallable))
+        {
+            throw new RuntimeError(expr.Paren, "Can only call functions and classes.");
+        }
+
+        LoxCallable? function = (LoxCallable?)callee;
+        if (arguments.Count != function?.Arity())
+        {
+            throw new RuntimeError(
+                expr.Paren,
+                "Expected " + function?.Arity() + " arguments but got " + arguments.Count + "."
+            );
+        }
+        return function?.Call(this, arguments);
     }
 }
