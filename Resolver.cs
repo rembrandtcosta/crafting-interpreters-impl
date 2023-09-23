@@ -3,7 +3,7 @@ using System.Collections;
 
 class Resolver : Expr.Visitor<Object?>, Stmt.Visitor<Object?> {
     readonly Interpreter interpreter;    
-    readonly Stack<Dictionary<String, Boolean>> scopes = new Stack<Dictionary<String, Boolean>>();
+    readonly Stack<Dictionary<String, Boolean?>> scopes = new Stack<Dictionary<String, Boolean?>>();
     FunctionType currentFunction = FunctionType.NONE;
     
     public Resolver(Interpreter interpreter) 
@@ -124,12 +124,10 @@ class Resolver : Expr.Visitor<Object?>, Stmt.Visitor<Object?> {
 
     public Object? VisitVariableExpr(Expr.Variable expr)
     {
-        if (scopes.Count > 0)
-        {
-            Boolean has = true;
-            scopes.Peek().TryGetValue(expr.Name.Lexeme, out has);
-            if (has != false)
-                Program.Error(expr.Name, "Can't read local variable in its own initializer.");
+        if (scopes.Count > 0 && !scopes.Peek().TryGetValue(expr.Name.Lexeme, out Boolean? has) && has == false)
+        { // First check if there is a variable, then check if it's inside its declaration.
+             
+            Program.Error(expr.Name, "Can't read local variable in its own initializer.");
         }
 
         ResolveLocal(expr, expr.Name);
@@ -184,7 +182,7 @@ class Resolver : Expr.Visitor<Object?>, Stmt.Visitor<Object?> {
 
     void BeginScope()
     {
-        scopes.Push(new Dictionary<String, Boolean>());
+        scopes.Push(new Dictionary<String, Boolean?>());
     }
 
     void EndScope()
@@ -197,7 +195,7 @@ class Resolver : Expr.Visitor<Object?>, Stmt.Visitor<Object?> {
         if (scopes.Count == 0)
             return;
 
-        Dictionary<String, Boolean> scope = scopes.Peek();
+        Dictionary<String, Boolean?> scope = scopes.Peek();
         if (scope.ContainsKey(name.Lexeme))
         {
             Program.Error(name, "Already a variable with this name in this scope.");
@@ -209,7 +207,6 @@ class Resolver : Expr.Visitor<Object?>, Stmt.Visitor<Object?> {
     {
         if (scopes.Count == 0)
             return;
-
         scopes.Peek().TryAdd(name.Lexeme, true);
     }
 
