@@ -2,17 +2,17 @@ namespace LoxLanguage;
 
 class Environment
 {
-    readonly Environment? enclosing;
-    private readonly Dictionary<String, Object?> values = new Dictionary<String, Object?>();
+    readonly Environment? Enclosing;
+    private readonly Dictionary<String, Object?> Values = new Dictionary<String, Object?>();
 
     public Environment()
     {
-        enclosing = null;
+        Enclosing = null;
     }
 
     public Environment(Environment enclosing)
     {
-        this.enclosing = enclosing;
+        this.Enclosing = enclosing;
     }
 
     public Object? Get(Token? name)
@@ -22,28 +22,28 @@ class Environment
             throw new RuntimeError(null, "Undefined variable '" + name?.Lexeme + "'.");
         }
 
-        if (values.TryGetValue(name.Lexeme, out Object? obj))
+        if (this.Values.TryGetValue(name.Lexeme, out Object? obj))
         {
             return obj;
         }
 
-        if (enclosing != null)
-            return enclosing.Get(name);
+        if (this.Enclosing != null)
+            return Enclosing.Get(name);
 
         throw new RuntimeError(name, "Undefined variable '" + name.Lexeme + "'.");
     }
 
     public Object? Assign(Token? name, Object? value)
     {
-        if (name != null && values.ContainsKey(name.Lexeme))
+        if (name != null && this.Values.ContainsKey(name.Lexeme))
         {
-            values[name.Lexeme] = value;
+            this.Values[name.Lexeme] = value;
             return null;
         }
 
-        if (enclosing != null)
+        if (this.Enclosing != null)
         {
-            enclosing.Assign(name, value);
+            this.Enclosing.Assign(name, value);
             return null;
         }
 
@@ -52,6 +52,29 @@ class Environment
 
     public void Define(String name, Object? obj)
     {
-        values.Add(name, obj);
+        this.Values.Add(name, obj);
+    }
+
+    Environment? Ancestor(int distance)
+    {
+        Environment environment = this;
+        for (int i = 0; i < distance; i++)
+        {
+            environment = environment.Enclosing;
+        }
+
+        return environment;
+    }
+
+    public Object? GetAt(int distance, String name)
+    {
+        Object? ret;
+        Ancestor(distance).Values.TryGetValue(name, out ret);
+        return ret;
+    }
+
+    public void AssignAt(int distance, Token name, Object value)
+    {
+        Ancestor(distance).Values.Add(name.Lexeme, value);
     }
 }

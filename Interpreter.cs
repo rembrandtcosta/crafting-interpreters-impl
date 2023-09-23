@@ -7,6 +7,7 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
 {
     public readonly Environment globals = new Environment();
     private Environment environment;
+    readonly Dictionary<Expr, int> locals = new Dictionary<Expr, int>();
 
     class clockClass : LoxCallable
     {
@@ -89,7 +90,19 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
 
     public Object? VisitVariableExpr(Expr.Variable? expr)
     {
-        return environment.Get(expr?.Name);
+        return LookUpVariable(expr.Name, expr);
+    }
+
+    Object? LookUpVariable(Token name, Expr expr)
+    {
+        if (locals.TryGetValue(expr, out int distance))
+        {
+            return environment.GetAt(distance, name.Lexeme);
+        }
+        else
+        {
+            return globals.Get(name);
+        }
     }
 
     private void CheckNumberOperand(Token op, Object? operand)
@@ -154,6 +167,11 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
     private void Execute(Stmt? stmt)
     {
         stmt?.Accept(this);
+    }
+
+    public void Resolve(Expr expr, int depth)
+    {
+        locals.Add(expr, depth);
     }
 
     public void ExecuteBlock(ArrayList statements, Environment environment)
@@ -250,7 +268,14 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
     public Object? VisitAssignExpr(Expr.Assign expr)
     {
         Object? value = Evaluate(expr.Value);
-        environment.Assign(expr.Name, value);
+        if (locals.TryGetValue(expr, out int distance))
+        {
+            environment.AssignAt(distance, expr.Name, value);
+        } 
+        else
+        {
+            environment.Assign(expr.Name, value);
+        }
         return value;
     }
 
