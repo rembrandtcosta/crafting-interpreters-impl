@@ -22,9 +22,9 @@ class Parser
         this.PromptMode = PromptMode;
     }
 
-    public ArrayList Parse()
+    public List<Stmt> Parse()
     {
-        ArrayList statements = new ArrayList();
+        List<Stmt> statements = new List<Stmt>();
         while (!IsAtEnd())
         {
             statements.Add(Declaration());

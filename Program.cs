@@ -67,9 +67,9 @@ static class Program
     private static void Run(String source, bool promptMode)
     {
         Scanner scanner = new Scanner(source);
-        ArrayList tokens = scanner.ScanTokens();
-        Parser parser = new Parser(tokens.Cast<Token>().ToList(), promptMode);
-        ArrayList statements = parser.Parse();
+        List<Token> tokens = scanner.ScanTokens();
+        Parser parser = new Parser(tokens, promptMode);
+        List<Stmt> statements = parser.Parse();
 
         if (hadError)
             return;

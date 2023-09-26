@@ -6,7 +6,7 @@ namespace LoxLanguage;
 class Scanner
 {
     private String source;
-    private ArrayList tokens = new ArrayList();
+    private List<Token> tokens = new List<Token>();
     private int start = 0;
     private int current = 0;
     private int line = 1;
@@ -35,7 +35,7 @@ class Scanner
         keywords.Add("while", WHILE);
     }
 
-    public ArrayList ScanTokens()
+    public List<Token> ScanTokens()
     {
         while (!IsAtEnd())
         {

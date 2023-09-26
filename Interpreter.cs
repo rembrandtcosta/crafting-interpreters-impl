@@ -29,7 +29,7 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
         globals.Define("clock", new clockClass());
     }
 
-    public void Interpret(ArrayList statements)
+    public void Interpret(List<Stmt> statements)
     {
         try
         {

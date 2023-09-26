@@ -48,7 +48,7 @@ namespace LoxLanguage
 
         public class Function : Stmt
         {
-            public Function(Token Name, ArrayList Parameters, ArrayList Body)
+            public Function(Token Name, List<Token> Parameters, List<Stmt> Body)
             {
                 this.Name = Name;
                 this.Parameters = Parameters;
@@ -61,8 +61,8 @@ namespace LoxLanguage
             }
 
             public Token Name;
-            public ArrayList Parameters;
-            public ArrayList Body;
+            public List<Token> Parameters;
+            public List<Stmt> Body;
         }
 
         public class If : Stmt

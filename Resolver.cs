@@ -16,7 +16,7 @@ class Resolver : Expr.Visitor<Object?>, Stmt.Visitor<Object?> {
         FUNCTION,   
     }
 
-    public void Resolve(ArrayList statements)
+    public void Resolve(List<Stmt> statements)
     {
         foreach (Stmt statement in statements)
         {
