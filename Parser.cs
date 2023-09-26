@@ -112,7 +112,7 @@ class Parser
 
         if (increment != null)
         {
-            ArrayList a = new ArrayList { body, new Stmt.Expression(increment), };
+            List<Stmt> a = new List<Stmt> { body, new Stmt.Expression(increment), };
             body = new Stmt.Block(a);
         }
 
@@ -124,7 +124,7 @@ class Parser
 
         if (initializer != null)
         {
-            body = new Stmt.Block(new ArrayList { initializer, body });
+            body = new Stmt.Block(new List<Stmt> { initializer, body });
         }
 
         return body;
@@ -211,7 +211,7 @@ class Parser
     {
         Token name = Consume(IDENTIFIER, "Expect " + kind + " name.");
         Consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
-        ArrayList parameters = new ArrayList();
+        List<Token> parameters = new List<Token>();
         if (!Check(RIGHT_PAREN))
         {
             do
@@ -227,13 +227,13 @@ class Parser
         Consume(RIGHT_PAREN, "Expect ')' after parameters.");
 
         Consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
-        ArrayList body = Block();
+        List<Stmt> body = Block();
         return new Stmt.Function(name, parameters, body);
     }
 
-    private ArrayList Block()
+    private List<Stmt> Block()
     {
-        ArrayList statements = new ArrayList();
+        List<Stmt> statements = new List<Stmt>();
 
         while (!Check(RIGHT_BRACE) && !IsAtEnd())
         {

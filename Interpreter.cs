@@ -174,7 +174,7 @@ class Interpreter : Expr.Visitor<Object?>, Stmt.Visitor<Object?>
         locals.Add(expr, depth);
     }
 
-    public void ExecuteBlock(ArrayList statements, Environment environment)
+    public void ExecuteBlock(List<Stmt> statements, Environment environment)
     {
         Environment previous = this.environment;
 

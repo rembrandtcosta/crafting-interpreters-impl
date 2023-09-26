@@ -1,5 +1,4 @@
 using LoxLanguage;
-using System.Collections;
 
 class Resolver : Expr.Visitor<Object?>, Stmt.Visitor<Object?> {
     readonly Interpreter interpreter;    

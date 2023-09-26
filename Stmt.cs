@@ -18,7 +18,7 @@ namespace LoxLanguage
 
         public class Block : Stmt
         {
-            public Block(ArrayList Statements)
+            public Block(List<Stmt> Statements)
             {
                 this.Statements = Statements;
             }
@@ -28,7 +28,7 @@ namespace LoxLanguage
                 return visitor.VisitBlockStmt(this);
             }
 
-            public ArrayList Statements;
+            public List<Stmt> Statements;
         }
 
         public class Expression : Stmt
